@@ -1,5 +1,7 @@
 fun main() {
 
+    val day = "Day01"
+
     fun <E> List<E>.chunked(predicate: (E) -> Boolean): List<List<E>> {
         tailrec fun <E> List<E>.accumulatedChunked(acc: List<List<E>>, predicate: (E) -> Boolean): List<List<E>> =
             if (this.isEmpty()) {
@@ -28,11 +30,12 @@ fun main() {
     }
 
     // test if implementation meets criteria from the description, like:
-    val testInput = readInput("Day01_test")
-    check(part1(testInput) == 24000)
-    check(part2(testInput) == 45000)
+    val testInput = readInput("${day}_test")
+    val input = readInput(day)
 
-    val input = readInput("Day01")
+    check(part1(testInput) == 24000)
     println(part1(input))
+
+    check(part2(testInput) == 45000)
     println(part2(input))
 }

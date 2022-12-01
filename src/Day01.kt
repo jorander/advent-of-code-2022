@@ -1,26 +1,26 @@
 fun main() {
 
-    fun <E> List<E>.splitBy(predicate: (E) -> Boolean): List<List<E>> {
-        tailrec fun <E> List<E>.accumulatedSplitBy(acc: List<List<E>>, predicate: (E) -> Boolean): List<List<E>> =
+    fun <E> List<E>.chunked(predicate: (E) -> Boolean): List<List<E>> {
+        tailrec fun <E> List<E>.accumulatedChunked(acc: List<List<E>>, predicate: (E) -> Boolean): List<List<E>> =
             if (this.isEmpty()) {
                 acc
             } else {
                 val firstList = this.takeWhile { !predicate(it) }
                 val rest = this.dropWhile { !predicate(it) }.dropWhile(predicate)
-                rest.accumulatedSplitBy(acc + listOf(firstList), predicate)
+                rest.accumulatedChunked(acc + listOf(firstList), predicate)
             }
 
-        return this.accumulatedSplitBy(emptyList(), predicate)
+        return this.accumulatedChunked(emptyList(), predicate)
     }
 
     fun part1(input: List<String>): Int {
-        return input.splitBy(String::isEmpty)
+        return input.chunked(String::isEmpty)
             .map { it.map(String::toInt).sum() }
             .max()
     }
 
     fun part2(input: List<String>): Int {
-        return input.splitBy(String::isEmpty)
+        return input.chunked(String::isEmpty)
             .map { it.map(String::toInt).sum() }
             .sortedDescending()
             .take(3)

@@ -3,7 +3,7 @@ fun main() {
     val day = "Day03"
 
     fun List<String>.findCommonChar() =
-        this.drop(1).fold(this.first()) { acc, s -> s.filter { acc.contains(it) } }.first()
+        this.drop(1).fold(this.first().toSet()) { acc, s -> s.toSet().intersect(acc) }.first()
 
     fun calculatePriority(badge: Char) =
         if (badge.isLowerCase()) {

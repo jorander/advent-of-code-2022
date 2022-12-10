@@ -28,3 +28,13 @@ fun <E> List<E>.chunked(predicate: (E) -> Boolean): List<List<E>> {
 
     return this.accumulatedChunked(emptyList(), predicate)
 }
+
+/**
+ * Some classes and methods to handle positions and movements i a 2D-space.
+ */
+data class Position2D(val x: Int, val y: Int){
+    infix operator fun plus(movement: Movement2D) = Position2D(this.x + movement.dx, this.y + movement.dy)
+    infix operator fun minus(other: Position2D) = Movement2D(this.x - other.x, this.y - other.y)
+}
+
+data class Movement2D(val dx: Int, val dy: Int)

@@ -1,39 +1,8 @@
 import kotlin.math.abs
 
-typealias Position = Pair<Int, Int>
+typealias Knot = Position2D
 
-private fun Position.isCloseTo(other: Position): Boolean {
-    val (thisX, thisY) = this
-    val (otherX, otherY) = other
-
-    return abs(thisX - otherX) <= 1 && abs(thisY - otherY) <= 1
-}
-
-private fun Position.directlyLeftOrRightFrom(other: Position): Boolean {
-    val (_, thisY) = this
-    val (_, otherY) = other
-    return thisY == otherY
-}
-
-private fun Position.directlyUpOrDownFrom(other: Position): Boolean {
-    val (thisX, _) = this
-    val (otherX, _) = other
-    return thisX == otherX
-}
-
-enum class MoveDirection(
-    val moveRequirement: (head: Position, tail: Position) -> Boolean,
-    val move: (p: Position) -> Position
-) {
-    U({ head, tail -> tail.directlyUpOrDownFrom(head) }, { (x, y) -> x to y + 1 }),
-    L({ head, tail -> tail.directlyLeftOrRightFrom(head) }, { (x, y) -> x - 1 to y }),
-    D({ head, tail -> tail.directlyUpOrDownFrom(head) }, { (x, y) -> x to y - 1 }),
-    R({ head, tail -> tail.directlyLeftOrRightFrom(head) }, { (x, y) -> x + 1 to y }),
-    UR({ _, _ -> true }, { (x, y) -> x + 1 to y + 1 }),
-    UL({ _, _ -> true }, { (x, y) -> x - 1 to y + 1 }),
-    DL({ _, _ -> true }, { (x, y) -> x - 1 to y - 1 }),
-    DR({ _, _ -> true }, { (x, y) -> x + 1 to y - 1 });
-}
+private fun Knot.isCloseTo(other: Knot) = (this - other).run { abs(dx) <= 1 && abs(dy) <= 1 }
 
 fun main() {
 
@@ -41,10 +10,10 @@ fun main() {
 
     data class Simulation(
         val numberOfExtraKnots: Int = 0,
-        val head: Position = 0 to 0,
-        val knots: List<Position> = List(numberOfExtraKnots) { _ -> 0 to 0 },
-        val tail: Position = 0 to 0,
-        val placesVisitedByTail: Set<Position> = setOf(tail)
+        val head: Knot = Knot(0, 0),
+        val knots: List<Knot> = List(numberOfExtraKnots) { _ -> head },
+        val tail: Knot = head,
+        val placesVisitedByTail: Set<Knot> = setOf(tail)
     ) {
         fun moveHead(direction: String): Simulation {
             val newHeadPosition = calculateNewHeadPosition(direction)
@@ -60,21 +29,26 @@ fun main() {
             )
         }
 
-        private fun calculateNewHeadPosition(direction: String): Position =
-            MoveDirection.valueOf(direction).move(head)
+        private fun calculateNewHeadPosition(direction: String) =
+            head + when (direction) {
+                "U" -> Movement2D(0, 1)
+                "L" -> Movement2D(-1, 0)
+                "D" -> Movement2D(0, -1)
+                "R" -> Movement2D(1, 0)
+                else -> {
+                    throw IllegalArgumentException("Unknown input: $direction")
+                }
+            }
 
-        private fun calculateKnotPositions(head: Position): List<Position> =
+        private fun calculateKnotPositions(head: Knot) =
             knots.runningFold(head) { prev, tail -> tail.calculateNewPosition(prev) }.drop(1)
 
-        private fun Position.calculateNewPosition(head: Position): Position {
+        private fun Knot.calculateNewPosition(head: Knot): Knot {
             val tail = this
             return if (tail.isCloseTo(head)) {
                 tail
             } else {
-                MoveDirection.values()
-                    .filter { it.moveRequirement(head, tail) }
-                    .map { it.move(tail) }
-                    .first { newTail -> newTail.isCloseTo(head) }
+                tail + Movement2D((head.x - tail.x).coerceIn(-1, 1), (head.y - tail.y).coerceIn(-1, 1))
             }
         }
     }

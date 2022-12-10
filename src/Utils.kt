@@ -32,9 +32,13 @@ fun <E> List<E>.chunked(predicate: (E) -> Boolean): List<List<E>> {
 /**
  * Some classes and methods to handle positions and movements i a 2D-space.
  */
-data class Position2D(val x: Int, val y: Int){
+data class Position2D(val x: Int, val y: Int) {
     infix operator fun plus(movement: Movement2D) = Position2D(this.x + movement.dx, this.y + movement.dy)
     infix operator fun minus(other: Position2D) = Movement2D(this.x - other.x, this.y - other.y)
+
+    companion object {
+        fun from(p: Pair<Int, Int>) = Position2D(p.first, p.second)
+    }
 }
 
 data class Movement2D(val dx: Int, val dy: Int)

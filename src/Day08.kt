@@ -1,5 +1,5 @@
-typealias Direction = (Pair<Int, Int>, List<String>) -> List<Pair<Int, Int>>
-typealias TreePosition = Pair<Int, Int>
+typealias TreePosition = Position2D
+typealias Direction = (TreePosition, List<String>) -> List<TreePosition>
 
 fun main() {
 
@@ -11,22 +11,20 @@ fun main() {
 
     val byMultiplication: (Int, Int) -> Int = { i1, i2 -> i1 * i2 }
 
-    val up: Direction = { tp: TreePosition, _: List<String> -> val (x, y) = tp; (0 until y).map { x to it }.reversed() }
+    val up: Direction =
+        { tp: TreePosition, _: List<String> -> (0 until tp.y).map { TreePosition(tp.x, it) }.reversed() }
     val down: Direction =
-        { tp: TreePosition, grid: List<String> -> val (x, y) = tp; (y + 1 until grid.size).map { x to it } }
+        { tp: TreePosition, grid: List<String> -> (tp.y + 1 until grid.size).map { TreePosition(tp.x, it) } }
     val left: Direction =
-        { tp: TreePosition, _: List<String> -> val (x, y) = tp; (0 until x).map { it to y }.reversed() }
+        { tp: TreePosition, _: List<String> -> (0 until tp.x).map { TreePosition(it, tp.y) }.reversed() }
     val right: Direction =
-        { tp: TreePosition, grid: List<String> -> val (x, y) = tp; (x + 1 until grid[0].length).map { it to y } }
+        { tp: TreePosition, grid: List<String> -> (tp.x + 1 until grid[0].length).map { TreePosition(it, tp.y) } }
 
     val directions = listOf(up, down, left, right)
 
-    fun List<String>.getTreeAt(position: TreePosition): Char {
-        val (x, y) = position
-        return this[y][x]
-    }
+    fun List<String>.getTreeAt(position: TreePosition) = this[position.y][position.x]
 
-    fun List<String>.treePositions() = (0 until this[0].length).cartesianProduct(indices)
+    fun List<String>.treePositions() = (0 until this[0].length).cartesianProduct(indices).map(TreePosition::from)
 
     fun part1(grid: List<String>): Int {
 
@@ -36,10 +34,8 @@ fun main() {
         fun TreePosition.isVisibleFromAnyDirection() =
             directions.any { this.canBeSeenFrom(it) }
 
-        fun TreePosition.isOnOuterEdge(): Boolean {
-            val (x, y) = this
-            return (x == 0) || (x == grid[0].length - 1) || (y == 0) || (y == grid.size - 1)
-        }
+        fun TreePosition.isOnOuterEdge() =
+            (x == 0) || (x == grid[0].length - 1) || (y == 0) || (y == grid.size - 1)
 
         fun List<String>.numberOfTreesOnOuterEdge() = treePositions().filter { it.isOnOuterEdge() }.size
 

@@ -1,63 +1,57 @@
+typealias Trees = Grid2D<Char>
 typealias TreePosition = Position2D
-typealias Direction = (TreePosition, List<String>) -> List<TreePosition>
+typealias Direction = (TreePosition, Trees) -> List<TreePosition>
 
 fun main() {
 
     val day = "Day08"
 
-    fun IntRange.cartesianProduct(r2: IntRange): List<Pair<Int, Int>> {
-        return flatMap { x -> r2.map { y -> x to y } }
-    }
-
     val byMultiplication: (Int, Int) -> Int = { i1, i2 -> i1 * i2 }
 
     val up: Direction =
-        { tp: TreePosition, _: List<String> -> (0 until tp.y).map { TreePosition(tp.x, it) }.reversed() }
+        { tp: TreePosition, _: Trees -> (0 until tp.y).map { TreePosition(tp.x, it) }.reversed() }
     val down: Direction =
-        { tp: TreePosition, grid: List<String> -> (tp.y + 1 until grid.size).map { TreePosition(tp.x, it) } }
+        { tp: TreePosition, trees: Trees -> (tp.y + 1 until trees.height).map { TreePosition(tp.x, it) } }
     val left: Direction =
-        { tp: TreePosition, _: List<String> -> (0 until tp.x).map { TreePosition(it, tp.y) }.reversed() }
+        { tp: TreePosition, _: Trees -> (0 until tp.x).map { TreePosition(it, tp.y) }.reversed() }
     val right: Direction =
-        { tp: TreePosition, grid: List<String> -> (tp.x + 1 until grid[0].length).map { TreePosition(it, tp.y) } }
+        { tp: TreePosition, trees: Trees -> (tp.x + 1 until trees.width).map { TreePosition(it, tp.y) } }
 
     val directions = listOf(up, down, left, right)
 
-    fun List<String>.getTreeAt(position: TreePosition) = this[position.y][position.x]
-
-    fun List<String>.treePositions() = (0 until this[0].length).cartesianProduct(indices).map(TreePosition::from)
-
-    fun part1(grid: List<String>): Int {
+    fun part1(input: List<String>): Int {
+        val trees = Trees.from(input)
 
         fun TreePosition.canBeSeenFrom(direction: Direction) =
-            direction(this, grid).none { (grid.getTreeAt(this) <= grid.getTreeAt(it)) }
+            direction(this, trees).none { (trees[this]) <= trees[it] }
 
         fun TreePosition.isVisibleFromAnyDirection() =
             directions.any { this.canBeSeenFrom(it) }
 
-        fun TreePosition.isOnOuterEdge() =
-            (x == 0) || (x == grid[0].length - 1) || (y == 0) || (y == grid.size - 1)
+        fun TreePosition.isOnOuterEdge() = isOnOuterEdgeIn(trees)
 
-        fun List<String>.numberOfTreesOnOuterEdge() = treePositions().filter { it.isOnOuterEdge() }.size
+        fun Trees.numberOfTreesOnOuterEdge() = allPositions.filter { it.isOnOuterEdge() }.size
 
-        return grid.treePositions()
+        return (trees.allPositions
             .filter { !it.isOnOuterEdge() }
-            .count { it.isVisibleFromAnyDirection() } + grid.numberOfTreesOnOuterEdge()
+            .count { it.isVisibleFromAnyDirection() } + trees.numberOfTreesOnOuterEdge())
     }
 
-    fun part2(grid: List<String>): Int {
+    fun part2(input: List<String>): Int {
+        val trees = Trees.from(input)
 
         fun List<TreePosition>.thatCanBeSeenFrom(treePosition: TreePosition): Int {
 
             fun addViewOfTreeThatCantBeSeenPassed(numberOfLowerTreesCounted: Int) =
                 if (isNotEmpty() && numberOfLowerTreesCounted < size) 1 else 0
 
-            return takeWhile { (grid.getTreeAt(treePosition) > grid.getTreeAt(it)) }
+            return takeWhile { (trees[treePosition] > trees[it]) }
                 .count().let { it + addViewOfTreeThatCantBeSeenPassed(it) }
         }
 
         fun TreePosition.numberOfTreesInViewPerDirection() =
             directions.map { direction ->
-                val treesInDirection = direction(this, grid)
+                val treesInDirection = direction(this, trees)
                 treesInDirection.thatCanBeSeenFrom(this)
             }
 
@@ -65,7 +59,7 @@ fun main() {
             numberOfTreesInViewPerDirection()
                 .reduce(byMultiplication)
 
-        return grid.treePositions()
+        return trees.allPositions
             .maxOf { it.scenicValue() }
     }
 

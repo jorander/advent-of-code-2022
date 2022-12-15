@@ -6,8 +6,6 @@ fun main() {
 
     val day = "Day08"
 
-    val byMultiplication: (Int, Int) -> Int = { i1, i2 -> i1 * i2 }
-
     val up: Direction =
         { tp: TreePosition, _: Trees -> (0 until tp.y).map { TreePosition(tp.x, it) }.reversed() }
     val down: Direction =
@@ -57,7 +55,7 @@ fun main() {
 
         fun TreePosition.scenicValue() =
             numberOfTreesInViewPerDirection()
-                .reduce(byMultiplication)
+                .reduce(Int::times)
 
         return trees.allPositions
             .maxOf { it.scenicValue() }
